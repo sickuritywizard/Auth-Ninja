@@ -1,9 +1,9 @@
 # AuthNZ-Tester-007
 
-Automates AuthN and AuthZ. 
-Parses SwaggerFile (Json) file and extracts all the APIs.
+- For Automating the AuthN and AuthZ Test of APIs. 
+- Parses SwaggerFile (Json/Yaml) file and extracts all the APIs.
 
-#Usage
+## Usage
 ```
 Hardcode the values in the script, or provide respective flags.
 
@@ -18,23 +18,23 @@ Hardcode the values in the script, or provide respective flags.
 -v, --verbose               Disable Verbose Output
 -z, --authz                 Run AuthZ Check [Default False]
 -n, --noauthn               Disable Authentication Test
- ``
+ ```
 
 
-#Examples
-```
+## Examples
+
 1)Authentication Test
-authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1"
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1"
 
 2)Both Authentication and Authorization Test
-authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z
 
 3)Only Authorization Test
-authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z -n
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z -n
 
 4)If input File is yaml
-authNZ-Tester-007.py -f "/pathToSwagger.yml" -u "http://host.com/api/v1" -y
+> authNZ-Tester-007.py -f "/pathToSwagger.yml" -u "http://host.com/api/v1" -y
 
 5)OutputResults to CSV
-authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -c "OutputDirectory/"
-```
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -c "OutputDirectory/"
+
