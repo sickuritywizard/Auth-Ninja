@@ -196,8 +196,8 @@ def printOtherResults(authZ_or_N,unauthNZ_List,notFoundList,validList,getMethodS
 	for API in notFoundList:
 		print(f"{YELLOW}{API[2]} : {API[0].ljust(6)}{ENDC} : {API[1]}")   #StatusCode,Method,URL
 
-	print(f"\n{PURPLE}{UNDERLINE}| GET APIs with ResponseCode 200: {len(getMethodSuccessList)}|{ENDC}")
 	if getMethodSuccessList:
+		print(f"\n{PURPLE}{UNDERLINE}| GET APIs with ResponseCode 200: {len(getMethodSuccessList)}|{ENDC}")
 		for API in getMethodSuccessList:
 			print(f"{YELLOW}{API[2]} : {API[0].ljust(6)}{ENDC} : {API[1]}")   #StatusCode,Method,URL
 
@@ -214,7 +214,6 @@ def saveResultToFile(isAuthN,unauthNZ_List,notFoundList,validList,outputDir,getM
 	else:
 		fileName = get_unique_Filename("authZ_Results-007",".txt")
 
-	print(fileName)
 	with open(fileName, "w") as file:
 		if isAuthN:
 			file.write(f"[-]UNAUTHENTICATED APIS: {len(unauthNZ_List)}\n")
