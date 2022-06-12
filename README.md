@@ -38,3 +38,5 @@ Hardcode the values in the script, or provide respective flags.
 5)OutputResults to CSV
 > authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -c "OutputDirectory/"
 
+## Additional
+> Use https://github.com/killeroo7/urlsToSwagger-007 to convert URL List to Swagger Docs
