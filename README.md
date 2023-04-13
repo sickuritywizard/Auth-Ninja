@@ -7,7 +7,7 @@
 ```
 Hardcode the values in the script, or provide respective flags.
 
--h, --help                  show this help message and exit
+-h, --help                  Show this help message and exit
 -i, --ip IP                 Target IP [Provide IP or URL]
 -u, --url BASEURL.          Base URL [Ex:http://host.com/api/v2 {No Trailing Slash}]
 -f, --file SWAGGERFILE      Swagger File Location
@@ -18,6 +18,8 @@ Hardcode the values in the script, or provide respective flags.
 -v, --verbose               Disable Verbose Output
 -z, --authz                 Run AuthZ Check [Default False]
 -n, --noauthn               Disable Authentication Test
+-p, --proxy                 Set Proxy
+-g,                         Replace All Path Variables in URL with this value
  ```
 
 

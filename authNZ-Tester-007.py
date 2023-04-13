@@ -26,6 +26,9 @@ def getArguments():
 	parser.add_argument('-o','--output',dest='outputDir',help="Output Directory (Default: Output is not saved)")
 	parser.add_argument('-c','--csv',dest='csvDir',help="Output Directory for CSV File (Default: Output is not saved)")
 	parser.add_argument('-y','--yaml',dest='isYaml',action="store_true",help="Use if Input file Is Yaml [Default: Json]")
+	parser.add_argument('-po','--print-only',dest='printOnly',action="store_true",help="Parse the OpenAPI File and Print it")
+	parser.add_argument('-p','--proxy',dest='proxy',help="Set Proxy [Ex: 127.0.0.1:8080]")
+	parser.add_argument('-g','--global-path-variable',dest='globalPathVariable',help="Replace All Path Variables in URL with this value")
 	args = parser.parse_args()
 	return args
 
@@ -41,9 +44,9 @@ def get_unique_Filename(fileName,ext):
 
 	return fileName+ext
 
-#Gets service.json file which contains all the APIs
+
 def getSwaggerFromWeb(swaggerFileURL,webclientSessionID):
-	headers = {"Webclientsessionid" : webclientSessionID,"zz": "x"}
+	headers = {"Webclientsessionid" : webclientSessionID}
 	response = requests.get(apiExplorerURL, headers=headers, verify=False)
 	if response.status_code == 401:
 		print(f"{RED}[-] Please Check WebClientSessionID, received 401 Unauthorized")
@@ -66,10 +69,20 @@ def getSwaggerFromFile(filePath,yml=False):
 			print("[-] Error Parsing JSON File --> ",e)
 			exit(0)
 
+
 def getSessionID(url,uname,upass):
 	response = requests.post(url,auth=(uname, upass),verify=False)
 	sess = response.json()
 	return sess["value"]
+
+
+def parseAndPrintURLs(swaggerFile,isYaml,host):
+	responseDict = getSwaggerFromFile(swaggerFile,isYaml)
+	APIList = convertAndGetAPIList(responseDict)
+	for API in APIList:
+		rawURL = f"{host}{API['path']}"
+		httpMethod = API['method'].upper() 
+		print(f"[-]{GREEN} {httpMethod.ljust(7)} {ENDC}: {LIGHTRED} {rawURL} {ENDC}")
 
 
 def convertAndGetAPIList(responseDict):
@@ -81,41 +94,43 @@ def convertAndGetAPIList(responseDict):
 			if method == "parameters":
 				continue
 			else:
-				# APIList.append({"path":path,"method":method,"summary":others['description']}) //When u want description as well
+				# APIList.append({"path":path,"method":method,"summary":others['description']})  //When u want description as well
 				APIList.append({"path":path,"method":method})
 				# print(method.upper().ljust(6) , " --> ", path)
 
 	return APIList
 
 
-def buildURL(url):
-	url = re.sub(r"\{.*\}", 'test', url)     #Replace /{anything} with /test
-	# url = re.sub(r"\{.*\}", '9523e2a5-36e8-4abf-8388-d10fdb851661', url)
-	# url = url.replace("{link}","mylink")
-	return url
-
-
-def AuthenticationTest(host,APIList,outputDir,csvDir,verbose):
+def AuthenticationTest(host,APIList,outputDir,csvDir,verbose,proxy,globalPathVariable):
 	unAuthenticatedList = []
 	notFoundList = []
 	validList = []              #APIs That Return 401
 	headerDict={"Content-Type":"application/json","Authorization" : "Bearer 1234abcd-opaque-bearer-token-abcdlS7QF2hkqVho=="}
+	proxies = {}
+
+	if proxy:
+		proxies = {
+		'http' : proxy,
+		'https': proxy,
+		}
+
 
 	done=0
 	for API in APIList:
 		rawURL = f"{host}{API['path']}"
-		url = buildURL(rawURL)
+		url = buildURL(rawURL,globalPathVariable)
 		httpMethod = API['method'] 
 		print(f"[-]{GREEN}PROGRESS: {done}/{len(APIList)} {ENDC}|{LIGHTRED} URL: {url}                              {ENDC}",end="\r"),
 		sys.stdout.flush()
 		done+=1
 
 		try:
-			response = getattr(requests,httpMethod.lower())(url,verify=False,timeout=15)
-			response2 = getattr(requests,httpMethod.lower())(url,headers=headerDict,verify=False,timeout=15)
+			response = getattr(requests,httpMethod.lower())(url,verify=False,timeout=20,proxies=proxies)
+			response2 = getattr(requests,httpMethod.lower())(url,headers=headerDict,verify=False,timeout=20,proxies=proxies)
 
 			if response.status_code == 404 and response2.status_code==404:
 				notFoundList.append((httpMethod.upper(),url,response.status_code))
+				# print(f"{RED}[-]Not Found:{ENDC} {YELLOW}{response.status_code} : {httpMethod.upper().ljust(6)} {ENDC}: {url}                  ")
 
 			elif response.status_code != 401 or response2.status_code != 401:
 				unAuthenticatedList.append((httpMethod.upper(),url,response.status_code))
@@ -139,7 +154,7 @@ def AuthenticationTest(host,APIList,outputDir,csvDir,verbose):
 	return unAuthenticatedList,notFoundList,validList
 
 
-def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose):
+def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,globalPathVariable):
 	getMethodSuccessList = []
 	unAuthorizedList = []
 	notFoundList = []
@@ -149,7 +164,7 @@ def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose):
 	done=0
 	for API in APIList:
 		rawURL = f"{host}{API['path']}"
-		url = buildURL(rawURL)
+		url = buildURL(rawURL,globalPathVariable)
 		httpMethod = API['method'] 
 		print(f"[-]{GREEN}PROGRESS: {done}/{len(APIList)} {ENDC}|{LIGHTRED} URL: {url}                              {ENDC}",end="\r"),
 		sys.stdout.flush()
@@ -184,6 +199,7 @@ def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose):
 		saveResultsToCSV(False,unAuthorizedList,notFoundList,validList,csvDir,getMethodSuccessList)
 
 	return unAuthorizedList,notFoundList,validList
+
 
 def printOtherResults(authZ_or_N,unauthNZ_List,notFoundList,validList,getMethodSuccessList=None):
 	print(f'\n{PURPLE}{UNDERLINE}| VERBOSE PRINT |{ENDC}{ENDC}')
@@ -280,7 +296,7 @@ def saveResultsToCSV(isAuthN,unauthNZ_List,notFoundList,validList,csvDir,getMeth
 	print(f"\n{GREEN}[-]Output Saved To: {csvDir}/{fileName}{ENDC}")
 
 
-def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,authZCheck,authNCheck):
+def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck):
 
 	if not os.path.exists(swaggerFile):
 		print(f"[-]{LIGHTRED}Swagger File Not Found: {swaggerFile}{ENDC}")
@@ -300,14 +316,31 @@ def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,
 	print(f"{GREEN}[-] SessionID  :{ENDC}{YELLOW} {lowPrivSessionID}{ENDC} [Only Required for AuthZ Test]")
 	print(f"{GREEN}[-] Verbose    :{ENDC}{YELLOW} {verbose}{ENDC}")
 	print(f"{GREEN}[-] IsYaml     :{ENDC}{YELLOW} {isYaml}{ENDC}")
+	print(f"{GREEN}[-] Proxy      :{ENDC}{YELLOW} {proxy}{ENDC}")
 	print(f"{GREEN}[-] Output Dir :{ENDC}{YELLOW} {outputDir}{ENDC}")
 	print(f"{GREEN}[-] Output CSV :{ENDC}{YELLOW} {csvDir}{ENDC}")
+
 	print(f"{GREEN}[-] Make Sure to modify buildURL() in script to replace PATH variables:{ENDC}\n")
 	ans = input("Running Automation with Above Details (Please Enter or N to cancel): ")
 	if ans.lower()=="n":
 		print(f"{RED}[-]Exiting Program{ENDC}")
 		exit()
 	print()
+
+
+def buildURL(url,globalPathVariable):
+	url = url.replace("{namespace_id}","2731")           #Add more replacements as required
+	url = url.replace("{action_id}","2731")          
+	url = url.replace("{secret_store_id}","2543")          
+	url = url.replace("{user_id}","2731")          
+	url = url.replace("{policy_id}","2731")
+	url = url.replace("{service_id}","101")	
+	# url = url.replace("{replaceThis}","withThis")
+
+	#All Other Path Variables will be replaced with this
+	globalPathVar = globalPathVariable or "pradeep"   #pradeep if globalPathVariable is not defined
+	url = re.sub(r"\{.*\}", globalPathVar, url)       #Replace /{anything} with /pradeep
+	return url
 
 
 def main():
@@ -324,6 +357,9 @@ def main():
 	authNCheck = True
 	outputDir =  os.path.abspath(".")
 	csvDir = None
+	printOnly = args.printOnly
+	globalPathVariable = args.globalPathVariable or False
+	proxy = args.proxy or False
 
 	if args.verbose:         #If explicitly disabled verbose
 		verbose = False
@@ -336,8 +372,12 @@ def main():
 	if args.csvDir:	
 		csvDir = os.path.abspath(args.csvDir)
 
+	if args.printOnly:
+		parseAndPrintURLs(swaggerFile,isYaml,url)
+		exit()
+
 	# lowPrivSessionID = getSessionID("session_url","username","password")
-	confirmDetails(IP,baseUrl,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,authZCheck,authNCheck)
+	confirmDetails(IP,baseUrl,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck)
 
 	# responseDict = getSwaggerFromWeb(swaggerURL,webclientSessionID)
 	responseDict = getSwaggerFromFile(swaggerFile,isYaml)
@@ -345,11 +385,10 @@ def main():
 
 	if authNCheck:
 		print(f"{PURPLE}{UNDERLINE}| AUTHN TEST WITH NO/GIBBRISH SESSION COOKIE | TOTAL-URLS: {len(APIList)} |{ENDC}\n")
-		AuthenticationTest(baseUrl,APIList,outputDir,csvDir,verbose)
+		AuthenticationTest(baseUrl,APIList,outputDir,csvDir,verbose,proxy,globalPathVariable)
 
 	if authZCheck:
 		print(f"{PURPLE}{UNDERLINE}|AUTHZ TEST WITH READ ONLY SESSION|{ENDC}{ENDC}\n")
-		AuthorizationTest(baseUrl,APIList,lowPrivSessionID,outputDir,csvDir,verbose)
+		AuthorizationTest(baseUrl,APIList,lowPrivSessionID,outputDir,csvDir,verbose,proxy,globalPathVariable)
 
 main()
-
