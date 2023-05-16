@@ -26,9 +26,10 @@ def getArguments():
 	parser.add_argument('-o','--output',dest='outputDir',help="Output Directory (Default: Output is not saved)")
 	parser.add_argument('-c','--csv',dest='csvDir',help="Output Directory for CSV File (Default: Output is not saved)")
 	parser.add_argument('-y','--yaml',dest='isYaml',action="store_true",help="Use if Input file Is Yaml [Default: Json]")
-	parser.add_argument('-po','--print-only',dest='printOnly',action="store_true",help="Parse the OpenAPI File and Print it")
+	parser.add_argument('-po','--print-only',dest='printOnly',action="store_true",help="Parse the OpenAPI File and only print it")
+	parser.add_argument('-pop','--print-only-processed',dest='printOnlyProcessed',action="store_true",help="Parse OpenAPI File, Replace PathVar and only print it")
 	parser.add_argument('-p','--proxy',dest='proxy',help="Set Proxy [Ex: 127.0.0.1:8080]")
-	parser.add_argument('-g','--global-path-variable',dest='globalPathVariable',help="Replace All Path Variables in URL with this value")
+	parser.add_argument('-g','--global-path-variable',dest='globalPathVar',help="Replace All Path Variables in URL with this value")
 	args = parser.parse_args()
 	return args
 
@@ -76,13 +77,20 @@ def getSessionID(url,uname,upass):
 	return sess["value"]
 
 
-def parseAndPrintURLs(swaggerFile,isYaml,host):
+def parseAndPrintURLs(swaggerFile,isYaml,host,globalPathVar,toProcess):
 	responseDict = getSwaggerFromFile(swaggerFile,isYaml)
 	APIList = convertAndGetAPIList(responseDict)
 	for API in APIList:
-		rawURL = f"{host}{API['path']}"
+		url = f"{host}{API['path']}"
+
+		if toProcess:                                         #if flag printOnlyProcessed
+			url = buildURL(url,globalPathVar)
+
+		elif globalPathVar:                                   #If globalPathVar is given
+			url = re.sub(r"\{.*\}", globalPathVar, url)
+
 		httpMethod = API['method'].upper() 
-		print(f"[-]{GREEN} {httpMethod.ljust(7)} {ENDC}: {LIGHTRED} {rawURL} {ENDC}")
+		print(f"[-]{GREEN} {httpMethod.ljust(7)} {ENDC}: {LIGHTRED} {url} {ENDC}")
 
 
 def convertAndGetAPIList(responseDict):
@@ -101,7 +109,7 @@ def convertAndGetAPIList(responseDict):
 	return APIList
 
 
-def AuthenticationTest(host,APIList,outputDir,csvDir,verbose,proxy,globalPathVariable):
+def AuthenticationTest(host,APIList,outputDir,csvDir,verbose,proxy,globalPathVar):
 	unAuthenticatedList = []
 	notFoundList = []
 	validList = []              #APIs That Return 401
@@ -118,7 +126,7 @@ def AuthenticationTest(host,APIList,outputDir,csvDir,verbose,proxy,globalPathVar
 	done=0
 	for API in APIList:
 		rawURL = f"{host}{API['path']}"
-		url = buildURL(rawURL,globalPathVariable)
+		url = buildURL(rawURL,globalPathVar)
 		httpMethod = API['method'] 
 		print(f"[-]{GREEN}PROGRESS: {done}/{len(APIList)} {ENDC}|{LIGHTRED} URL: {url}                              {ENDC}",end="\r"),
 		sys.stdout.flush()
@@ -154,7 +162,7 @@ def AuthenticationTest(host,APIList,outputDir,csvDir,verbose,proxy,globalPathVar
 	return unAuthenticatedList,notFoundList,validList
 
 
-def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,globalPathVariable):
+def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,globalPathVar):
 	getMethodSuccessList = []
 	unAuthorizedList = []
 	notFoundList = []
@@ -164,7 +172,7 @@ def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,glob
 	done=0
 	for API in APIList:
 		rawURL = f"{host}{API['path']}"
-		url = buildURL(rawURL,globalPathVariable)
+		url = buildURL(rawURL,globalPathVar)
 		httpMethod = API['method'] 
 		print(f"[-]{GREEN}PROGRESS: {done}/{len(APIList)} {ENDC}|{LIGHTRED} URL: {url}                              {ENDC}",end="\r"),
 		sys.stdout.flush()
@@ -328,7 +336,7 @@ def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,
 	print()
 
 
-def buildURL(url,globalPathVariable):
+def buildURL(url,globalPathVar):
 	url = url.replace("{namespace_id}","2731")           #Add more replacements as required
 	url = url.replace("{action_id}","2731")          
 	url = url.replace("{secret_store_id}","2543")          
@@ -338,7 +346,7 @@ def buildURL(url,globalPathVariable):
 	# url = url.replace("{replaceThis}","withThis")
 
 	#All Other Path Variables will be replaced with this
-	globalPathVar = globalPathVariable or "pradeep"   #pradeep if globalPathVariable is not defined
+	globalPathVar = globalPathVar or "pradeep"        #pradeep if globalPathVar is not defined
 	url = re.sub(r"\{.*\}", globalPathVar, url)       #Replace /{anything} with /pradeep
 	return url
 
@@ -358,13 +366,14 @@ def main():
 	outputDir =  os.path.abspath(".")
 	csvDir = None
 	printOnly = args.printOnly
-	globalPathVariable = args.globalPathVariable or False
+	globalPathVar = args.globalPathVar or False
 	proxy = args.proxy or False
 
 	if args.verbose:         #If explicitly disabled verbose
 		verbose = False
+
 	if args.authNCheck:      #If explicitly disabled authN Check
-		authNCheck =False
+		authNCheck = False
 
 	if args.outputDir:
 		outputDir = os.path.abspath(args.outputDir)
@@ -373,7 +382,11 @@ def main():
 		csvDir = os.path.abspath(args.csvDir)
 
 	if args.printOnly:
-		parseAndPrintURLs(swaggerFile,isYaml,url)
+		parseAndPrintURLs(swaggerFile,isYaml,url,globalPathVar,False)  #Doesnlt Call BuildURL()
+		exit()
+
+	if args.printOnlyProcessed:
+		parseAndPrintURLs(swaggerFile,isYaml,url,globalPathVar,True)    #Calls BuildURL()
 		exit()
 
 	# lowPrivSessionID = getSessionID("session_url","username","password")
@@ -385,10 +398,10 @@ def main():
 
 	if authNCheck:
 		print(f"{PURPLE}{UNDERLINE}| AUTHN TEST WITH NO/GIBBRISH SESSION COOKIE | TOTAL-URLS: {len(APIList)} |{ENDC}\n")
-		AuthenticationTest(baseUrl,APIList,outputDir,csvDir,verbose,proxy,globalPathVariable)
+		AuthenticationTest(baseUrl,APIList,outputDir,csvDir,verbose,proxy,globalPathVar)
 
 	if authZCheck:
 		print(f"{PURPLE}{UNDERLINE}|AUTHZ TEST WITH READ ONLY SESSION|{ENDC}{ENDC}\n")
-		AuthorizationTest(baseUrl,APIList,lowPrivSessionID,outputDir,csvDir,verbose,proxy,globalPathVariable)
+		AuthorizationTest(baseUrl,APIList,lowPrivSessionID,outputDir,csvDir,verbose,proxy,globalPathVar)
 
 main()
