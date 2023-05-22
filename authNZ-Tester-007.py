@@ -17,7 +17,7 @@ LIGHTRED = '\033[91m';PURPLE = '\033[95m';BOLD = '\033[1m';UNDERLINE = '\033[4m'
 def getArguments():
 	parser = argparse.ArgumentParser("Automated AuthZ AuthN Test")
 	parser.add_argument('-i','--ip',dest='IP',help="Target IP [Provide IP or URL]")
-	parser.add_argument('-u','--url',dest='baseURL',help="Base URL [Ex:http://host.com/api/v2 {No Trailing Slash}]")
+	parser.add_argument('-u','--url',dest='url',help="URL [Ex:http://host.com]")
 	parser.add_argument('-f','--file',dest='swaggerFile',help="Swagger File Location")
 	parser.add_argument('-v','--verbose',dest='verbose',action="store_true",help="Disable Verbose Output")
 	parser.add_argument('-z','--authz',dest='authZCheck',action="store_true",help="Run AuthZ Check [Default False]")
@@ -87,7 +87,7 @@ def parseAndPrintURLs(swaggerFile,isYaml,host,globalPathVar,toProcess):
 			url = buildURL(url,globalPathVar)
 
 		elif globalPathVar:                                   #If globalPathVar is given
-			url = re.sub(r"\{.*\}", globalPathVar, url)
+			url = re.sub(r"\{[^}]+\}", globalPathVar, url)
 
 		httpMethod = API['method'].upper() 
 		print(f"[-]{GREEN} {httpMethod.ljust(7)} {ENDC}: {LIGHTRED} {url} {ENDC}")
@@ -329,7 +329,7 @@ def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,
 	print(f"{GREEN}[-] Output CSV :{ENDC}{YELLOW} {csvDir}{ENDC}")
 
 	print(f"{GREEN}[-] Make Sure to modify buildURL() in script to replace PATH variables:{ENDC}\n")
-	ans = input("Running Automation with Above Details (Please Enter or N to cancel): ")
+	ans = input("Running Automation with Above Details (Press Enter to continue or N to cancel): ")
 	if ans.lower()=="n":
 		print(f"{RED}[-]Exiting Program{ENDC}")
 		exit()
@@ -337,17 +337,12 @@ def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,
 
 
 def buildURL(url,globalPathVar):
-	url = url.replace("{namespace_id}","2731")           #Add more replacements as required
-	url = url.replace("{action_id}","2731")          
-	url = url.replace("{secret_store_id}","2543")          
-	url = url.replace("{user_id}","2731")          
-	url = url.replace("{policy_id}","2731")
-	url = url.replace("{service_id}","101")	
+	# url = url.replace("{namespace_id}","2731")           #Add more replacements as required
 	# url = url.replace("{replaceThis}","withThis")
 
 	#All Other Path Variables will be replaced with this
 	globalPathVar = globalPathVar or "pradeep"        #pradeep if globalPathVar is not defined
-	url = re.sub(r"\{.*\}", globalPathVar, url)       #Replace /{anything} with /pradeep
+	url = re.sub(r"\{[^}]+\}", globalPathVar, url)       #Replace /{anything} with /pradeep
 	return url
 
 
@@ -357,10 +352,11 @@ def main():
 	isYaml     = args.isYaml or False
 	authZCheck = args.authZCheck or False
 	IP         = args.IP or "xx.xx.xx.xx"
-	url        = args.baseURL or "https://host.com/api/v2" 
+	url        = args.url or f"https://{IP}"
+	if url.endswith('/'):
+		url = url[:-1]
 	swaggerFile= args.swaggerFile or "/pathTo/swagger-api-v2.json"
 	lowPrivSessionID = args.sessionID or "LowPrivSessionID" 
-	baseUrl    = args.baseURL or f"https://{IP}/api/v1"
 	verbose    = True
 	authNCheck = True
 	outputDir =  os.path.abspath(".")
@@ -390,7 +386,7 @@ def main():
 		exit()
 
 	# lowPrivSessionID = getSessionID("session_url","username","password")
-	confirmDetails(IP,baseUrl,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck)
+	confirmDetails(IP,url,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck)
 
 	# responseDict = getSwaggerFromWeb(swaggerURL,webclientSessionID)
 	responseDict = getSwaggerFromFile(swaggerFile,isYaml)
@@ -398,10 +394,10 @@ def main():
 
 	if authNCheck:
 		print(f"{PURPLE}{UNDERLINE}| AUTHN TEST WITH NO/GIBBRISH SESSION COOKIE | TOTAL-URLS: {len(APIList)} |{ENDC}\n")
-		AuthenticationTest(baseUrl,APIList,outputDir,csvDir,verbose,proxy,globalPathVar)
+		AuthenticationTest(url,APIList,outputDir,csvDir,verbose,proxy,globalPathVar)
 
 	if authZCheck:
 		print(f"{PURPLE}{UNDERLINE}|AUTHZ TEST WITH READ ONLY SESSION|{ENDC}{ENDC}\n")
-		AuthorizationTest(baseUrl,APIList,lowPrivSessionID,outputDir,csvDir,verbose,proxy,globalPathVar)
+		AuthorizationTest(url,APIList,lowPrivSessionID,outputDir,csvDir,verbose,proxy,globalPathVar)
 
 main()
