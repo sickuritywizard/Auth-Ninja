@@ -1,12 +1,10 @@
 # AuthNZ-Tester-007
 
-- For Automating the AuthN and AuthZ Test of APIs. 
+- For Automating the AuthN and AuthZ Testing of APIs. 
 - Parses SwaggerFile (Json/Yaml) file and extracts all the APIs.
 
 ## Usage
 ```
-Hardcode the values in the script, or provide respective flags.
-
 -h, --help                  Show this help message and exit
 -i, --ip IP                 Target IP [Provide IP or URL]
 -u, --url BASEURL.          Base URL [Ex:http://host.com/api/v2 {No Trailing Slash}]
@@ -20,8 +18,9 @@ Hardcode the values in the script, or provide respective flags.
 -n, --noauthn               Disable Authentication Test
 -p, --proxy                 Set Proxy
 -g,                         Replace All Path Variables in URL with this value
+-po, --print-only           Parse the OpenAPI/Swagger File and only print it
+-pop                        Parse OpenAPI File, Replace PathVar and only print it
  ```
-
 
 ## Examples
 
