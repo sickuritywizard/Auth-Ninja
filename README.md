@@ -25,19 +25,19 @@
 ## Examples
 
 1)Authentication Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1"
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/"
 
 2)Both Authentication and Authorization Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -z
 
 3)Only Authorization Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -z -n
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -z -n
 
 4)If input File is yaml
-> authNZ-Tester-007.py -f "/pathToSwagger.yml" -u "http://host.com/api/v1" -y
+> authNZ-Tester-007.py -f "/pathToSwagger.yml" -u "http://host.com/" -y
 
 5)OutputResults to CSV
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/api/v1" -c "OutputDirectory/"
+> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -c "OutputDirectory/"
 
 ## Additional
 > Use https://github.com/killeroo7/urlsToSwagger-007 to convert URL List to Swagger Docs
