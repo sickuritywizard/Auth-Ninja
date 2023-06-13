@@ -168,7 +168,14 @@ def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,glob
 	notFoundList = []
 	validList = []              #APIs That Return 403
 	headerDict={"Content-Type":"application/json","Authorization" : "Bearer " +sessionID}
+	proxies = {}
 
+	if proxy:
+		proxies = {
+		'http' : proxy,
+		'https': proxy,
+		}
+		
 	done=0
 	for API in APIList:
 		rawURL = f"{host}{API['path']}"
@@ -179,7 +186,7 @@ def AuthorizationTest(host,APIList,sessionID,outputDir,csvDir,verbose,proxy,glob
 		done+=1
 
 		try:
-			response = getattr(requests,httpMethod.lower())(url,headers=headerDict,verify=False,timeout=15)
+			response = getattr(requests,httpMethod.lower())(url,headers=headerDict,verify=False,timeout=15,proxies=proxies)
 
 			if httpMethod.lower()=="get" and response.status_code == 200:
 				getMethodSuccessList.append((httpMethod.upper(),url,response.status_code))
