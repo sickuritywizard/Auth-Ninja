@@ -6,13 +6,33 @@ import sys,os
 import json,yaml                                                    
 from pathlib import Path
 import urllib3
-import csv
+import csv,datetime
+from termcolor import colored
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  #Disable SSL Warnings
 sys.stdout.reconfigure(line_buffering=True)                          #Enables tee command support
 
 #COLORS
 BLUE = '\033[94m';CYAN = '\033[96m';GREEN = '\033[92m';YELLOW = '\033[93m'; RED = "\033[0;31m";
 LIGHTRED = '\033[91m';PURPLE = '\033[95m';BOLD = '\033[1m';UNDERLINE = '\033[4m';ENDC = '\033[0m'
+
+def banner():
+	x="""	     _         _   _           _   _ _        _       
+            / \  _   _| |_| |__       | \ | (_)_ __  (_) __ _ 
+           / _ \| | | | __| '_ \ _____|  \| | | '_ \ | |/ _` |
+          / ___ \ |_| | |_| | | |_____| |\  | | | | || | (_| |
+         /_/   \_\__,_|\__|_| |_|     |_| \_|_|_| |_|/ |\__,_|Ⓥ 1  
+                                                   |__/       
+	"""
+ 
+	y = "+------------------------------------------------------+"     
+
+	xtime = "[-]Time: "+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+	z = f"								~SICKURITY_WIZARD\n"
+
+	print(colored(x,'blue'),end="")
+	print(colored(y,'white'))
+	print(colored(z,'white'))
 
 def getArguments():
 	parser = argparse.ArgumentParser("Automated AuthZ AuthN Test")
@@ -354,6 +374,7 @@ def buildURL(url,globalPathVar):
 
 
 def main():
+	banner()
 	#Fill Values after 'OR' for Hardcoded Input or Pass as Arguments	
 	args       = getArguments()
 	isYaml     = args.isYaml or False
