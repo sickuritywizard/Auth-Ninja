@@ -51,7 +51,7 @@
 
 
 ## Note
-- The V2 has still not been tested with swagger files and host
+- Auth-Ninja V2 has still not been tested with adequate swagger files
 - The old V1 app can still be found in deprecated/auth-ninja-v1.py 
 
 ## Additional
