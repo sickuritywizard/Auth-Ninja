@@ -1,7 +1,13 @@
-# AuthNZ-Tester-007
+# Auth-Ninja
 
 - For Automating the AuthN and AuthZ Testing of APIs. 
 - Parses SwaggerFile (Json/Yaml) file and extracts all the APIs.
+
+## Whats New
+- Auth-NinjaV2 parses the Query Parametes along with the Request Body.
+- If an example as been given in the swagger file, it extracts that as well.
+- The values of the PathVariables are now referenced using the pathVaribles.json file
+- The default values for parameters and requestbody can be set in the core/constants.py.
 
 ## Usage
 ```
@@ -17,27 +23,36 @@
 -z, --authz                 Run AuthZ Check [Default False]
 -n, --noauthn               Disable Authentication Test
 -p, --proxy                 Set Proxy
--g,                         Replace All Path Variables in URL with this value
--po, --print-only           Parse the OpenAPI/Swagger File and only print it
--pop                        Parse OpenAPI File, Replace PathVar and only print it
+-g <value>                  Set the default value for all the Path Variables in API
+-po, --print-only           Parse the OpenAPI/Swagger File and only print all the API
+-pop                        Parse the OpenAPI File, Replace PathVariables and then print it
  ```
+
 
 ## Examples
 
 1)Authentication Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/"
+> auth-ninja -f "/pathToSwagger.json" -u "http://host.com/"
 
 2)Both Authentication and Authorization Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -z
+> auth-ninja -f "/pathToSwagger.json" -u "http://host.com/" -z
 
-3)Only Authorization Test
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -z -n
+3)Perform Only Authorization Test
+> auth-ninja -f "/pathToSwagger.json" -u "http://host.com/" -z -n
 
-4)If input File is yaml
-> authNZ-Tester-007.py -f "/pathToSwagger.yml" -u "http://host.com/" -y
+4)If Input File is yaml
+> auth-ninja -f "/pathToSwagger.yml" -u "http://host.com/" -y
 
 5)OutputResults to CSV
-> authNZ-Tester-007.py -f "/pathToSwagger.json" -u "http://host.com/" -c "OutputDirectory/"
+> auth-ninja -f "/pathToSwagger.json" -u "http://host.com/" -c .
+
+6)Print All the APIs
+> auth-ninja -f "/pathToSwagger.json" -u "http://host.com/" -pop
+
+
+## Note
+- The V2 has still not been tested with swagger files and host
+- The old V1 app can still be found in deprecated/auth-ninja-v1.py 
 
 ## Additional
-> Use https://github.com/killeroo7/urlsToSwagger-007 to convert URL List to Swagger Docs
+> Use https://github.com/sickuritywizard/urlsToSwagger-007 to convert URL List to Swagger Docs
