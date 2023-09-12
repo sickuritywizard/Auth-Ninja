@@ -2,14 +2,15 @@ import os
 import csv
 from core.utils import getUniqueFilename
 from core.colors import *
+from core.constants import *
 
 
 def saveResultToFile(isAuthN,unauthNZ_List,notFoundList,validList,outputDir,getMethodSuccessList=None):
 	os.chdir(outputDir)
 	if isAuthN:
-		fileName = getUniqueFilename("authN_Results-007",".txt")
+		fileName = getUniqueFilename(AUTHN_RESULT_FILENAME,".txt")
 	else:
-		fileName = getUniqueFilename("authZ_Results-007",".txt")
+		fileName = getUniqueFilename(AUTHZ_RESULT_FILENAME,".txt")
 
 	with open(fileName, "w") as file:
 		if isAuthN:
@@ -33,7 +34,7 @@ def saveResultToFile(isAuthN,unauthNZ_List,notFoundList,validList,outputDir,getM
 		for API in validList:
 				file.write(f"{API[2]} : {API[0].ljust(6)} : {API[1]}\n")
 
-	print(f"\n{GREEN}[-]Output Saved To: {outputDir}/{fileName}{ENDC}")
+	print(f"\n{GREEN}[-]Text Output Saved To: {outputDir}/{fileName}{ENDC}")
 
 def saveResultsToCSV(isAuthN,unauthNZ_List,notFoundList,validList,csvDir,getMethodSuccessList=None):
 	os.chdir(csvDir)
@@ -41,9 +42,9 @@ def saveResultsToCSV(isAuthN,unauthNZ_List,notFoundList,validList,csvDir,getMeth
 	header = ["SL","API","Method","ResponseCode"]
 	slNo = 1
 	if isAuthN:
-		fileName = getUniqueFilename("authN_Results-007",".csv")
+		fileName = getUniqueFilename(AUTHN_RESULT_FILENAME,".csv")
 	else:
-		fileName = getUniqueFilename("authZ_Results-007",".csv")
+		fileName = getUniqueFilename(AUTHZ_RESULT_FILENAME,".csv")
 
 	with open(fileName,"w") as file:
 		writer = csv.writer(file)
@@ -74,4 +75,4 @@ def saveResultsToCSV(isAuthN,unauthNZ_List,notFoundList,validList,csvDir,getMeth
 			writer.writerow([slNo, API[1], API[0],API[2]])   #API | Method | ResponseCode
 			slNo+=1
 
-	print(f"\n{GREEN}[-]Output Saved To: {csvDir}/{fileName}{ENDC}")
+	print(f"{GREEN}[-]CSV  Output Saved To: {csvDir}/{fileName}{ENDC}")

@@ -20,8 +20,12 @@ sampleValueDict = {"integer":xInteger,
 					"arrayReqBody":xArrayReqBody,
 					"file":xFile}
 
+#OUTPUT
+AUTHN_RESULT_FILENAME = "authN-results"
+AUTHZ_RESULT_FILENAME = "authZ-results"
 
 #ARGUMENTS
 CONST_IP = "xx.xx.xx.xx"
 CONST_SWAGGER_FILE_PATH = "rx-service.json"
 CONST_LOW_PRIV_TOKEN = "lowPrivilegedUserToken"
+

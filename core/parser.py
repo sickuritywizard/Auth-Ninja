@@ -2,6 +2,7 @@ import json
 import re,os
 from core.colors import *
 from core.constants import *
+from termcolor import colored
 
 def getSwaggerFromWeb(swaggerFileURL,webclientSessionID):
 	headers = {"Webclientsessionid" : webclientSessionID}
@@ -134,7 +135,7 @@ def convertAndGetAPIList(responseDict):
 	try:
 		allClassesDict = buildClassObjectsFromSwagger(responseDict['definitions'])
 	except KeyError:
-		print(colored("[]No Class Definations in Swagger File","red"))
+		# print(colored("[X] No Class Definations in Swagger File","red"))
 		allClassesDict ={}
 
 	APIList = []

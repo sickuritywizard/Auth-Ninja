@@ -38,6 +38,7 @@ def getArguments():
 	parser.add_argument('-pop','--print-only-processed',dest='printOnlyProcessed',action="store_true",help="Parse OpenAPI File, Replace PathVar and only print it")
 	parser.add_argument('-p','--proxy',dest='proxy',help="Set Proxy [Ex: 127.0.0.1:8080]")
 	parser.add_argument('-g','--global-path-variable',dest='globalPathVar',help="Replace All Path Variables in URL with this value")
+	parser.add_argument('--skip',dest='skipConfirmation',action="store_true",help="Skip Details Confirmation")
 	args = parser.parse_args()
 	return args
 
@@ -188,6 +189,8 @@ def AuthorizationTest(hostURL,APIList,sessionID,outputDir,csvDir,verbose,proxy,g
 		except Exception as e:
 			print("Exception on URL: " , httpMethod ," : " ,url , "\n[-]" , e)
 
+	print(f"                                                                                                {ENDC}",end="\r"),
+	sys.stdout.flush()
 	if verbose:
 		printResults("UNAUTHORIZED",unAuthorizedList,notFoundList,validList,getMethodSuccessList)
 
@@ -201,7 +204,7 @@ def AuthorizationTest(hostURL,APIList,sessionID,outputDir,csvDir,verbose,proxy,g
 
 
 def printResults(authZ_or_N,unauthNZ_List,notFoundList,validList,getMethodSuccessList=None):
-	print(f'\n{PURPLE}{UNDERLINE}| VERBOSE PRINT |{ENDC}{ENDC}')
+	print(f'\n\n\n{UNDERLINE}_____________________\n|X| VERBOSE PRINT |X|{ENDC}')
 
 	print(f"\n{RED}{UNDERLINE}| {authZ_or_N} APIs: {len(unauthNZ_List)} |{ENDC}")
 	for API in unauthNZ_List:
@@ -246,7 +249,7 @@ def confirmDetails(IP,URL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,
 	print(f"{GREEN}[-] Output Dir :{ENDC}{YELLOW} {outputDir}{ENDC}")
 	print(f"{GREEN}[-] Output CSV :{ENDC}{YELLOW} {csvDir}{ENDC}")
 
-	print(f"{GREEN}[-] Make Sure to modify buildPathVariables() in script to replace PATH variables:{ENDC}\n")
+	print(f"{GREEN}[-] Make Sure to add Path Variables in pathVariables.json{ENDC}\n")
 	ans = input("Running Automation with Above Details (Press Enter to continue or N to cancel): ")
 	if ans.lower()=="n":
 		print(f"{RED}[-]Exiting Program{ENDC}")
@@ -300,7 +303,8 @@ def main():
 		exit()
 
 	# lowPrivSessionID = getSessionID("session_url","username","password")
-	confirmDetails(IP,hostURL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck)
+	if not args.skipConfirmation:
+		confirmDetails(IP,hostURL,swaggerFile,lowPrivSessionID,verbose,isYaml,outputDir,csvDir,proxy,authZCheck,authNCheck)
 
 	# responseDict = getSwaggerFromWeb(swaggerURL,webclientSessionID)
 	responseDict = getSwaggerFromFile(swaggerFile,isYaml)
