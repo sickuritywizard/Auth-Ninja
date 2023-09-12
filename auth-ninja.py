@@ -320,6 +320,3 @@ def main():
 
 
 main()
-
-#TODO: 
-#1)Create Setup.py
