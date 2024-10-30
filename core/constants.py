@@ -26,6 +26,6 @@ AUTHZ_RESULT_FILENAME = "authZ-results"
 
 #ARGUMENTS
 CONST_IP = "xx.xx.xx.xx"
-CONST_SWAGGER_FILE_PATH = "rx-service.json"
+CONST_SWAGGER_FILE_PATH = "xyz-service.json"
 CONST_LOW_PRIV_TOKEN = "lowPrivilegedUserToken"
 

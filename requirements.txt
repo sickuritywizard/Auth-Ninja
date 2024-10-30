@@ -1,5 +1,6 @@
 jsonpickle
 argparse
 urllib3
-re
-csv
+termcolor
+pyyaml
+requests
